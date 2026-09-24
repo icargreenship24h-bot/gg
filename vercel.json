@@ -1,0 +1,11 @@
+{
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/lay-sdt-nhanh.html", "destination": "/", "permanent": true },
+    { "source": "/lay-sdt-nhanh", "destination": "/", "permanent": true }
+  ],
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/admin", "destination": "/admin.html" }
+  ]
+}
