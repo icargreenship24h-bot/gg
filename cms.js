@@ -61,10 +61,10 @@
 
   function defaultKeywords() {
     return [
-      { id: "k1", text: "gai goi sinh vien cao cap 2026", priority: 10, maxShows: 40, shownCount: 0, active: true, guideImage: "" },
-      { id: "k2", text: "em dao xinh ha noi", priority: 7, maxShows: 25, shownCount: 0, active: true, guideImage: "" },
-      { id: "k3", text: "gai goi tphcm 24/7", priority: 5, maxShows: 20, shownCount: 0, active: true, guideImage: "" },
-      { id: "k4", text: "hot girl goi do da nang", priority: 3, maxShows: 15, shownCount: 0, active: true, guideImage: "" }
+      { id: "k1", text: "gai goi sinh vien cao cap 2026", priority: 10, maxShows: 40, shownCount: 0, active: true, guideImage: "", unlockCode: "DEMO2026" },
+      { id: "k2", text: "em dao xinh ha noi", priority: 7, maxShows: 25, shownCount: 0, active: true, guideImage: "", unlockCode: "DEMO2027" },
+      { id: "k3", text: "gai goi tphcm 24/7", priority: 5, maxShows: 20, shownCount: 0, active: true, guideImage: "", unlockCode: "DEMO2028" },
+      { id: "k4", text: "hot girl goi do da nang", priority: 3, maxShows: 15, shownCount: 0, active: true, guideImage: "", unlockCode: "DEMO2029" }
     ];
   }
 
@@ -189,7 +189,11 @@
     save(data);
     return data;
   }
-
+  function unlockCodeFor(kw, popup) {
+    var code = kw && String(kw.unlockCode || "").trim();
+    if (code) return code;
+    return String((popup && popup.unlockCode) || "").trim();
+  }
   function googleSearchUrl(base, keyword) {
     var root = (base || "https://www.google.com").replace(/\/$/, "");
     if (!keyword) return root;
@@ -242,6 +246,7 @@
     pickKeyword: pickKeyword,
     consumeKeyword: consumeKeyword,
     googleSearchUrl: googleSearchUrl,
+    unlockCodeFor: unlockCodeFor,
     initGA4: initGA4,
     track: track
   };
