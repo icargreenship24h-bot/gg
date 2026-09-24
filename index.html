@@ -365,7 +365,8 @@
         result.textContent = "Vui lòng nhập mã.";
         return;
       }
-      if (code === DB.popup.unlockCode) {
+      const expected = CMS.unlockCodeFor(currentKw, DB.popup);
+if (expected && code === expected) {
         CMS.track("code_ok", { girl_id: currentGirl && currentGirl.id, keyword: currentKw && currentKw.text });
         if (currentGirl.available === false) {
           document.getElementById("enterCodeBox").classList.add("hidden");
