@@ -285,6 +285,9 @@
           <tr>
             <td>
               <code>${CMS.esc(k.text)}</code>
+              ${k.unlockCode
+  ? `<div class="hint">Mã mở: <b>${CMS.esc(k.unlockCode)}</b></div>`
+  : `<div class="hint">Mã mở: dùng mã mặc định popup</div>`}
               ${k.guideImage ? `<div class="hint">Ảnh: ${CMS.esc(k.guideImage).slice(0,48)}${k.guideImage.length>48?"…":""}</div>` : `<div class="hint">Ảnh: dùng ảnh mặc định popup</div>`}
             </td>
             <td>${CMS.esc(k.priority)}</td>
@@ -299,7 +302,7 @@
           </tr>`;
       }).join("");
       const editing = window.__editKw;
-      const formKw = editing || { text: "", priority: 5, maxShows: 20, active: true, guideImage: "" };
+      const formKw = editing || { text: "", priority: 5, maxShows: 20, active: true, guideImage: "", unlockCode: "" };
       return `
         <div class="toolbar">
           <h1>Từ khóa Google (${(DB.keywords || []).length})</h1>
@@ -311,6 +314,9 @@
           </p>
           <form id="kwForm" class="grid-2">
             <div class="field span-2"><label>Từ khóa</label><input name="text" required value="${CMS.esc(formKw.text)}" placeholder="vd: gai goi ha noi" /></div>
+                        <div class="field span-2"><label>Mã mở khóa SĐT</label><input name="unlockCode" value="${CMS.esc(formKw.unlockCode || "")}" placeholder="vd: ID123 — user nhập mã này sau khi search Google" />
+              <div class="hint">Popup dùng đúng mã này khi đang hiện từ khóa. Để trống thì dùng “Mã mở khóa” ở tab Luồng popup.</div>
+            </div>
             <div class="field"><label>Ưu tiên (1–100)</label><input name="priority" type="number" min="1" max="100" value="${CMS.esc(formKw.priority)}" /></div>
             <div class="field"><label>Số lần cần hiển thị</label><input name="maxShows" type="number" min="1" value="${CMS.esc(formKw.maxShows)}" /></div>
             <div class="field"><label>Trạng thái</label>
@@ -489,6 +495,7 @@
         obj.maxShows = Number(obj.maxShows || 1);
         obj.active = obj.active === "true";
         obj.text = String(obj.text || "").trim();
+        obj.unlockCode = String(obj.unlockCode || "").trim();
         if (!obj.text) return toast("Nhập từ khóa");
         if (window.__editKw) {
           const i = DB.keywords.findIndex(k => k.id === window.__editKw.id);
