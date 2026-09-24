@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lấy SĐT nhanh</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --pink: #ff2e88; --pink-2: #ff4da6; --gold: #ffd700; --green: #66ff66;
+      --bg: #ececec; --card: #121212; --bar: #ef3b8a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Be Vietnam Pro", "Segoe UI", Tahoma, sans-serif; background: var(--bg); color: #222; }
+    button, input { font-family: inherit; }
+    .topbar {
+      background: var(--bar); height: 42px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 18px; position: sticky; top: 0; z-index: 50;
+    }
+    .btn-call-top {
+      background: #ffe44d; color: #111; font-weight: 800; font-size: 13px; border: none; border-radius: 20px;
+      padding: 6px 14px; cursor: pointer; box-shadow: 0 2px 0 #c9a800; position: relative; top: 10px;
+    }
+    .topbar-right a { color: #fff; text-decoration: none; font-size: 12px; }
+    .header {
+      background: #fff; display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 24px 14px; gap: 16px; flex-wrap: wrap; box-shadow: 0 1px 0 #eee;
+    }
+    .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit; }
+    .logo-mark {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #7ed957, #2d6a1e);
+      display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 18px;
+    }
+    .logo-text strong { color: #2f6b1f; font-size: 22px; display: block; }
+    .logo-text span { color: #888; font-size: 11px; }
+    .nav { display: flex; gap: 22px; }
+    .nav a { color: #333; text-decoration: none; font-size: 13px; font-weight: 600; text-transform: uppercase; }
+    .nav a:hover { color: var(--pink); }
+    .page-title {
+      text-align: center; color: #0000ff; font-size: clamp(18px, 2.4vw, 26px); font-weight: 800;
+      padding: 24px 16px 6px; text-transform: uppercase;
+    }
+    .filter-wrap { max-width: 1400px; margin: 0 auto; padding: 8px 16px 4px; }
+    .filter-label { font-size: 13px; font-weight: 700; color: #555; margin-bottom: 8px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      border: 1px solid #d9d9d9; background: #fff; color: #333; border-radius: 999px;
+      padding: 7px 14px; cursor: pointer; font-weight: 600; font-size: 13px;
+    }
+    .chip.active {
+      background: linear-gradient(135deg, #ff2e63, #d5008f); color: #fff; border-color: transparent;
+      box-shadow: 0 4px 14px rgba(255,46,99,.35);
+    }
+    .chip .n { opacity: .75; font-weight: 500; }
+    .girl-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 28px; padding: 16px 16px 60px; max-width: 1400px; margin: 0 auto;
+    }
+    .girl-card {
+      background: var(--card); border-radius: 16px; overflow: hidden; border: 1px solid #2d1a2d;
+      box-shadow: 0 8px 32px rgba(0,0,0,.55); transition: .35s ease;
+    }
+    .girl-card:hover { transform: translateY(-10px); box-shadow: 0 20px 60px rgba(255,20,147,.35); }
+    .girl-photo { position: relative; height: 460px; background: #000; }
+    .girl-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+    .badge-region {
+      position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,.7); color: #fff;
+      font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px; border: 1px solid #ff4da6;
+    }
+    .girl-name {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(to top, #000 45%, transparent);
+      padding: 36px 16px 14px; color: #fff; font-size: 1.45rem; font-weight: 900;
+      text-transform: uppercase; letter-spacing: .8px; text-shadow: 2px 2px 6px #000;
+    }
+    .girl-info { padding: 16px 20px 8px; }
+    .info-line { display: flex; gap: 10px; margin-bottom: 11px; align-items: flex-start; }
+    .info-label { color: var(--pink-2); font-weight: 700; min-width: 108px; flex-shrink: 0; }
+    .info-value { color: #eee; flex: 1; }
+    .price .info-value { color: var(--gold); font-weight: 900; font-size: 1.15rem; }
+    .phone-number .info-value { color: var(--green); font-weight: 700; font-size: 1.12rem; }
+    .call-zone { padding: 6px 20px 24px; text-align: center; }
+    .call-me-btn {
+      display: block; width: 100%; max-width: 300px; margin: 0 auto;
+      background: linear-gradient(135deg, #ff2e63, #ff0066, #d5008f); background-size: 300% 300%;
+      color: #fff; font-size: 1.25rem; font-weight: 900; padding: 16px 0; border-radius: 50px;
+      border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 1.6px;
+      box-shadow: 0 0 25px rgba(255,51,153,.55); animation: neonPulse 3s infinite alternate;
+    }
+    @keyframes neonPulse { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+    .empty-state { grid-column: 1 / -1; text-align: center; padding: 50px 16px; color: #666; background: #fff; border-radius: 12px; }
+    footer { background: #111; color: #888; text-align: center; padding: 22px 12px; font-size: 13px; }
+    footer a { color: #ff8ac4; }
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 200; display: none;
+      align-items: flex-start; justify-content: center; padding: 40px 12px; overflow-y: auto;
+    }
+    .overlay.open { display: flex; }
+    .popup {
+      background: #1a1a1a; color: #fff; width: min(560px, 100%); border-radius: 14px;
+      border: 1px solid #3a2030; position: relative; padding: 22px 20px 26px;
+    }
+    .close-btn { position: absolute; top: 8px; right: 10px; background: transparent; border: 0; color: #fff; font-size: 22px; cursor: pointer; font-weight: 800; }
+    .phone-tool-h2 { color: #fff; font-size: 16px; text-align: center; margin: 8px 0 6px; line-height: 1.4; }
+    .popup-info { text-align: center; color: #ffb6d9; margin-bottom: 12px; font-size: 14px; }
+    .phone-tool-input-box, .phone-tool-copy-box { display: flex; gap: 8px; margin-bottom: 10px; }
+    .phone-tool-password-field, .phone-tool-keyword {
+      flex: 1; padding: 10px 12px; border-radius: 6px; border: 1px solid #444; background: #111; color: #fff; font-size: 15px;
+    }
+    .phone-tool-btn {
+      background: linear-gradient(135deg, #ff2e63, #d5008f); color: #fff; border: 0; border-radius: 8px;
+      padding: 10px 14px; font-weight: 800; cursor: pointer; white-space: nowrap;
+    }
+    .phone-tool-btn-google { background: #1a73e8; }
+    .phone-tool-h3 { color: var(--pink-2); margin: 14px 0 8px; font-size: 15px; }
+    .phone-tool-guide-step { font-weight: 700; margin: 10px 0 4px; }
+    .guide-img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 8px; border: 1px dashed #ff4da6; margin: 6px 0; background: #222; }
+    .phone-tool-cta-text { text-align: center; margin-top: 12px; font-weight: 700; }
+    .result-message { min-height: 22px; text-align: center; font-weight: 700; margin: 6px 0; }
+    .result-bad { color: #ff6b6b; }
+    .result-ok { color: #66ff66; }
+    .full-phone { font-size: 22px; color: var(--green); font-weight: 900; letter-spacing: 1px; text-align: center; margin: 10px 0; }
+    .notice { color: var(--pink-2); font-weight: 800; text-align: center; margin: 12px 0; }
+    .hidden { display: none !important; }
+    .chips { -webkit-overflow-scrolling: touch; }
+    @media (max-width: 720px) {
+      .topbar { height: 46px; padding: 0 10px; }
+      .btn-call-top { top: 8px; font-size: 12px; padding: 6px 12px; }
+      .header { padding: 8px 12px 10px; }
+      .logo-mark { width: 40px; height: 40px; font-size: 15px; }
+      .logo-text strong { font-size: 16px; }
+      .nav { display: none; }
+      .page-title { font-size: 16px; line-height: 1.35; padding: 16px 12px 4px; }
+      .filter-wrap { padding: 8px 10px 0; }
+      .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 8px; }
+      .chip { flex: 0 0 auto; font-size: 12px; padding: 6px 12px; }
+      .girl-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 12px 10px 80px;
+      }
+      .girl-card:hover { transform: none; }
+      .girl-photo { height: min(72vw, 420px); }
+      .girl-name { font-size: 1.15rem; padding: 24px 12px 10px; letter-spacing: .3px; }
+      .girl-info { padding: 12px 14px 4px; }
+      .info-label { min-width: 92px; font-size: 13px; }
+      .info-value { font-size: 13px; }
+      .call-me-btn { font-size: 1.05rem; padding: 14px 0; letter-spacing: 1px; max-width: none; }
+      .overlay { padding: 12px 8px 24px; align-items: stretch; }
+      .popup { padding: 18px 14px 22px; width: 100%; border-radius: 12px; }
+      .phone-tool-h2 { font-size: 14px; padding-right: 20px; }
+      .phone-tool-input-box, .phone-tool-copy-box { flex-direction: column; }
+      .phone-tool-btn { width: 100%; }
+      .guide-img { max-height: 220px; object-fit: contain; background: #111; }
+      .full-phone { font-size: 20px; word-break: break-all; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script src="cms.js"></script>
+  <script>
+    let DB = CMS.load();
+    let currentFilter = "Tất cả";
+    let currentGirl = null;
+    let currentKw = null;
+    let lastGirlId = null;
+
+    function render() {
+      DB = CMS.load();
+      const esc = CMS.esc;
+      const counts = { "Tất cả": DB.girls.filter(g => g.available !== false).length };
+      DB.regions.forEach(r => counts[r] = DB.girls.filter(g => g.available !== false && g.region === r).length);
+      const list = DB.girls.filter(g => g.available !== false && (currentFilter === "Tất cả" || g.region === currentFilter));
+      const chips = ["Tất cả"].concat(DB.regions).map(r =>
+        `<button class="chip ${currentFilter === r ? "active" : ""}" data-region="${esc(r)}">${esc(r)} <span class="n">(${counts[r] || 0})</span></button>`
+      ).join("");
+      const p = DB.popup;
+
+      document.getElementById("app").innerHTML = `
+        <div class="topbar">
+          <button class="btn-call-top" id="hotlineBtn">☎ Gọi Cho Em</button>
+          <div class="topbar-right"><a href="admin.html">Quản trị</a></div>
+        </div>
+        <header class="header">
+          <a class="logo" href="lay-sdt-nhanh.html">
+            <div class="logo-mark">AG</div>
+            <div class="logo-text">
+              <strong>${esc(DB.settings.siteName)}</strong>
+              <span>${esc(DB.settings.siteTag)}</span>
+            </div>
+          </a>
+          <nav class="nav">
+            <a href="lay-sdt-nhanh.html">Home</a>
+            <a href="admin.html">Quản trị</a>
+          </nav>
+        </header>
+        <h1 class="page-title">${esc(DB.settings.pageTitle)}</h1>
+        <div class="filter-wrap">
+          <div class="filter-label">Lọc theo khu vực</div>
+          <div class="chips">${chips}</div>
+        </div>
+        <main class="girl-grid">
+          ${list.length ? list.map(cardHTML).join("") : `<div class="empty-state">Không có em nào đang hoạt động tại khu vực này.</div>`}
+        </main>
+        <footer>${esc(DB.settings.footer)} · <a href="admin.html">Trang quản trị</a></footer>
+        <div class="overlay" id="overlay">
+          <div class="popup">
+            <button class="close-btn" id="closePopup">X</button>
+            <div id="enterCodeBox">
+              <h2 class="phone-tool-h2" id="popupPhoneTitle"></h2>
+              <p class="popup-info" id="popupExtraInfo"></p>
+              <div class="phone-tool-input-box">
+                <input type="password" id="codeInput" class="phone-tool-password-field" placeholder="${esc(p.codePlaceholder)}" />
+                <button class="phone-tool-btn" id="confirmCode">${esc(p.confirmButton)}</button>
+              </div>
+              <div id="result" class="result-message"></div>
+              <h3 class="phone-tool-h3">${esc(p.guideTitle)}</h3>
+              <div class="phone-tool-guide-step">${esc(p.step1Title)}</div>
+              <p style="margin:4px 0 6px;">${esc(p.step1Text)}
+                <a id="googleLink" href="${esc(p.googleUrl)}" target="_blank" rel="noopener"><button class="phone-tool-btn phone-tool-btn-google" type="button">${esc(p.googleButton)}</button></a>
+              </p>
+              <div class="phone-tool-copy-box">
+                <input type="text" id="keyword" class="phone-tool-keyword" readonly value="" />
+                <button class="phone-tool-btn" id="copyKw">${esc(p.copyButton)}</button>
+              </div>
+              <div id="kwHint" class="result-message"></div>
+              <div class="phone-tool-guide-step">${esc(p.step2Title)}</div>
+              <p>${esc(p.step2Text)}</p>
+              <img class="guide-img" alt="Hướng dẫn" src="${esc(p.guideImage)}" />
+              <div class="phone-tool-guide-step">${esc(p.step3Title)}</div>
+              <p>${esc(p.step3Text)}</p>
+              <p class="phone-tool-cta-text">${esc(p.ctaText)}</p>
+            </div>
+            <div id="phoneBox" class="hidden">
+              <h3 class="phone-tool-h3">${esc(p.successTitle)}</h3>
+              <p class="full-phone" id="fullPhone"></p>
+              <p class="popup-info" id="unlockedInfo"></p>
+              <div style="text-align:center;margin-top:10px;">
+                <a id="telLink" class="phone-tool-btn" href="#">${esc(p.callNow)}</a>
+              </div>
+            </div>
+            <div id="failBox" class="hidden">
+              <h3 class="phone-tool-h3">${esc(p.failTitle)}</h3>
+              <p class="notice">${esc(p.failMessage)}</p>
+              <div style="text-align:center;">
+                <button class="phone-tool-btn" id="retryFail">${esc(p.failButton)}</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      bind();
+    }
+
+    function cardHTML(g) {
+      const esc = CMS.esc;
+      return `
+        <article class="girl-card">
+          <div class="girl-photo">
+            <img src="${esc(g.img)}" alt="${esc(g.name)}" />
+            <div class="badge-region">${esc(g.region || "")}</div>
+            <div class="girl-name">${esc(g.name)} - ${esc(g.year)}</div>
+          </div>
+          <div class="girl-info">
+            <div class="info-line"><span class="info-label">HIỆN TẠI:</span><span class="info-value">${esc(g.status)}</span></div>
+            <div class="info-line"><span class="info-label">Phục vụ:</span><span class="info-value">${esc(g.hours)}</span></div>
+            <div class="info-line"><span class="info-label">Di chuyển:</span><span class="info-value">${esc(g.move)}</span></div>
+            <div class="info-line"><span class="info-label">Dịch vụ:</span><span class="info-value">${esc(g.service)}</span></div>
+            <div class="info-line"><span class="info-label">Khách sạn:</span><span class="info-value">${esc(g.hotel)}</span></div>
+            <div class="info-line price"><span class="info-label">Giá:</span><span class="info-value">${esc(g.price)}</span></div>
+            <div class="info-line phone-number"><span class="info-label">SĐT:</span><span class="info-value">${esc(g.masked)}</span></div>
+          </div>
+          <div class="call-zone">
+            <button class="call-me-btn" data-open="${esc(g.id)}">Gọi cho em nè</button>
+          </div>
+        </article>`;
+    }
+
+    function bind() {
+      document.querySelectorAll("[data-region]").forEach(btn => {
+        btn.onclick = () => { currentFilter = btn.dataset.region; render(); };
+      });
+      document.querySelectorAll("[data-open]").forEach(btn => {
+        btn.onclick = () => openPopup(DB.girls.find(g => g.id === btn.dataset.open));
+      });
+      document.getElementById("hotlineBtn").onclick = () => {
+        const first = DB.girls.find(g => g.available !== false);
+        if (first) openPopup(first);
+      };
+      const overlay = document.getElementById("overlay");
+      overlay.onclick = e => { if (e.target === overlay) closePopup(); };
+      document.getElementById("closePopup").onclick = closePopup;
+      document.getElementById("confirmCode").onclick = kiemTraMa;
+      document.getElementById("codeInput").addEventListener("keydown", e => { if (e.key === "Enter") kiemTraMa(); });
+      document.getElementById("copyKw").onclick = function () {
+        const kw = document.getElementById("keyword");
+        navigator.clipboard.writeText(kw.value).then(() => {
+          this.textContent = "ĐÃ COPY";
+          const t = this;
+          setTimeout(() => t.textContent = DB.popup.copyButton, 1000);
+          const hint = document.getElementById("kwHint");
+          hint.className = "result-message result-ok";
+          hint.textContent = "Đã copy từ khóa. Dán vào Google rồi lấy mã ở cuối bài viết.";
+          CMS.track("copy_keyword", { keyword: kw.value, girl_id: currentGirl && currentGirl.id });
+        });
+      };
+      document.getElementById("retryFail").onclick = closePopup;
+    }
+
+    function applyKeyword(kw) {
+      currentKw = kw;
+      const input = document.getElementById("keyword");
+      if (input) input.value = kw && kw.text ? kw.text : "";
+      const link = document.getElementById("googleLink");
+      if (link) link.href = CMS.googleSearchUrl(DB.popup.googleUrl, input ? input.value : "");
+      const img = document.querySelector(".guide-img");
+      if (img) {
+        const src = (kw && kw.guideImage) || (DB.popup && DB.popup.guideImage) || "";
+        img.src = src;
+        img.style.display = src ? "block" : "none";
+      }
+    }
+
+    function assignKeyword(forceNew) {
+      const exclude = forceNew && currentKw ? currentKw.id : null;
+      const kw = CMS.pickKeyword(DB, { excludeId: exclude });
+      DB = CMS.consumeKeyword(DB, kw);
+      applyKeyword(kw);
+      return kw;
+    }
+
+    function openPopup(girl) {
+      if (!girl) return;
+      const switched = lastGirlId && lastGirlId !== girl.id;
+      currentGirl = girl;
+      lastGirlId = girl.id;
+      document.getElementById("popupPhoneTitle").textContent = CMS.fill(DB.popup.titleTemplate, girl);
+      document.getElementById("popupExtraInfo").textContent = CMS.fill(DB.popup.extraTemplate, girl);
+      document.getElementById("codeInput").value = "";
+      document.getElementById("result").textContent = "";
+      const hint = document.getElementById("kwHint");
+      if (hint) { hint.textContent = ""; hint.className = "result-message"; }
+      document.getElementById("enterCodeBox").classList.remove("hidden");
+      document.getElementById("phoneBox").classList.add("hidden");
+      document.getElementById("failBox").classList.add("hidden");
+      document.getElementById("overlay").classList.add("open");
+      assignKeyword(!!switched);
+      CMS.track(switched ? "switch_profile" : "open_popup", {
+        girl_id: girl.id,
+        girl_name: girl.name,
+        keyword: currentKw && currentKw.text
+      });
+    }
+    function closePopup() {
+      document.getElementById("overlay").classList.remove("open");
+    }
+    function kiemTraMa() {
+      const code = (document.getElementById("codeInput").value || "").trim();
+      const result = document.getElementById("result");
+      CMS.track("submit_code", { girl_id: currentGirl && currentGirl.id, keyword: currentKw && currentKw.text });
+      if (!code) {
+        result.className = "result-message result-bad";
+        result.textContent = "Vui lòng nhập mã.";
+        return;
+      }
+      if (code === DB.popup.unlockCode) {
+        CMS.track("code_ok", { girl_id: currentGirl && currentGirl.id, keyword: currentKw && currentKw.text });
+        if (currentGirl.available === false) {
+          document.getElementById("enterCodeBox").classList.add("hidden");
+          document.getElementById("failBox").classList.remove("hidden");
+          return;
+        }
+        document.getElementById("enterCodeBox").classList.add("hidden");
+        document.getElementById("phoneBox").classList.remove("hidden");
+        document.getElementById("fullPhone").textContent = currentGirl.full;
+        document.getElementById("unlockedInfo").textContent = currentGirl.name + " · " + currentGirl.price + " · " + currentGirl.region;
+        document.getElementById("telLink").href = "tel:" + currentGirl.full;
+      } else {
+        CMS.track("code_fail", { girl_id: currentGirl && currentGirl.id });
+        result.className = "result-message result-bad";
+        result.textContent = DB.popup.wrongCode;
+      }
+    }
+
+    window.addEventListener("storage", function (e) {
+      if (e.key === CMS.STORE_KEY) render();
+    });
+    CMS.initGA4(DB.settings);
+    render();
+  </script>
+</body>
+</html>

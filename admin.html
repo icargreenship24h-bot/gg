@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quản trị listing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --admin-bg: #0f1115; --admin-panel: #171a21; --line: #2a2f3a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Be Vietnam Pro", "Segoe UI", Tahoma, sans-serif;
+      background: var(--admin-bg); color: #e8eaf0; min-height: 100vh;
+    }
+    button, input, select, textarea { font-family: inherit; }
+    .login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+    .login-card {
+      width: min(420px, 100%); background: var(--admin-panel);
+      border: 1px solid var(--line); border-radius: 16px; padding: 28px;
+    }
+    .login-card h1 { font-size: 22px; margin-bottom: 6px; }
+    .login-card p { color: #9aa3b5; margin-bottom: 18px; font-size: 13px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 12px; font-weight: 700; color: #b7becc; margin-bottom: 6px; }
+    .field input, .field select, .field textarea {
+      width: 100%; background: #101318; border: 1px solid #323846; color: #fff;
+      border-radius: 8px; padding: 10px 12px; font-size: 14px;
+    }
+    .field textarea { min-height: 78px; resize: vertical; }
+    .btn { border: 0; border-radius: 8px; padding: 10px 14px; font-weight: 700; cursor: pointer; }
+    .btn-primary { background: linear-gradient(135deg, #ff2e63, #d5008f); color: #fff; width: 100%; }
+    .btn-ghost { background: #222836; color: #ddd; }
+    .btn-danger { background: #7a1f33; color: #fff; }
+    .btn-ok { background: #1d6b43; color: #fff; }
+    .btn-sm { padding: 6px 10px; font-size: 12px; }
+    .admin-shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+    .side {
+      background: #12151c; border-right: 1px solid var(--line); padding: 18px 12px;
+      position: sticky; top: 0; height: 100vh;
+    }
+    .side h2 { font-size: 15px; margin: 0 10px 16px; }
+    .side a, .side button {
+      display: block; width: 100%; text-align: left; background: transparent; color: #c9d0dc;
+      border: 0; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-weight: 600;
+      text-decoration: none; font-size: 14px;
+    }
+    .side button.active, .side button:hover, .side a:hover { background: #222836; color: #fff; }
+    .main-admin { padding: 22px 24px 60px; }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .toolbar h1 { font-size: 22px; }
+    table { width: 100%; border-collapse: collapse; background: var(--admin-panel); border-radius: 12px; overflow: hidden; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; font-size: 13px; vertical-align: middle; }
+    th { color: #9aa3b5; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
+    tr:hover td { background: #1c212c; }
+    .thumb { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; background: #000; }
+    .tag { background: #2a2030; color: #ff9ac8; border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 700; }
+    .okdot { color: #3ddc84; } .baddot { color: #ff6b6b; }
+    .modal-bg {
+      position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 80;
+      display: flex; align-items: flex-start; justify-content: center; padding: 30px 12px; overflow: auto;
+    }
+    .modal { width: min(760px, 100%); background: #171a21; border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .span-2 { grid-column: 1 / -1; }
+    .toast {
+      position: fixed; right: 16px; bottom: 16px; background: #1d6b43; color: #fff;
+      padding: 10px 14px; border-radius: 8px; z-index: 300; display: none; font-weight: 700;
+    }
+    .settings-card {
+      background: var(--admin-panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 16px;
+    }
+    .settings-card h3 { margin-bottom: 12px; font-size: 16px; }
+    .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .hint { color: #8b93a3; font-size: 12px; margin-top: 4px; }
+    .warn {
+      background: #3a2a12; border: 1px solid #7a5a22; color: #f3d9a4;
+      padding: 10px 12px; border-radius: 8px; font-size: 12px; margin-bottom: 16px;
+    }
+    table { display: block; overflow-x: auto; }
+    @media (max-width: 860px) {
+      .admin-shell { grid-template-columns: 1fr; }
+      .side {
+        position: sticky; top: 0; z-index: 20; height: auto;
+        display: flex; flex-wrap: wrap; gap: 4px; padding: 10px;
+      }
+      .side h2 { width: 100%; margin: 0 6px 8px; }
+      .side a, .side button { width: auto; padding: 8px 10px; font-size: 13px; }
+      .main-admin { padding: 14px 10px 40px; }
+      .toolbar h1 { font-size: 18px; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .modal { padding: 14px; }
+      .btn-primary { width: 100%; }
+      th, td { font-size: 12px; padding: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div class="toast" id="toast"></div>
+  <script src="cms.js"></script>
+  <script>
+    let DB = CMS.load();
+    let adminTab = "girls";
+    let editingId = null;
+
+    function toast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.style.display = "block";
+      setTimeout(() => el.style.display = "none", 1800);
+    }
+
+    function render() {
+      DB = CMS.load();
+      document.getElementById("app").innerHTML = CMS.isAdmin() ? shell() : loginView();
+      bind();
+    }
+
+    function loginView() {
+      return `
+        <div class="login-wrap">
+          <form class="login-card" id="loginForm">
+            <h1>Trang quản trị</h1>
+            <p>Đăng nhập để quản lý hồ sơ, từ khóa và cài đặt.</p>
+            <div class="field"><label>Mật khẩu</label><input type="password" id="adminPass" autofocus /></div>
+            <button class="btn btn-primary" type="submit">Đăng nhập</button>
+            <p class="hint" style="margin-top:12px;"><a href="lay-sdt-nhanh.html" style="color:#ff8ac4;">← Về trang listing</a></p>
+          </form>
+        </div>`;
+    }
+
+    function shell() {
+      const tabs = [
+        ["girls", "Hồ sơ card"],
+        ["popup", "Luồng popup"],
+        ["keywords", "Từ khóa"],
+        ["regions", "Khu vực"],
+        ["settings", "Cài đặt / GA4"]
+      ];
+      return `
+        <div class="admin-shell">
+          <aside class="side">
+            <h2>CMS Listing</h2>
+            ${tabs.map(([id, label]) => `<button data-tab="${id}" class="${adminTab === id ? "active" : ""}">${label}</button>`).join("")}
+            <button data-tab="logout">Đăng xuất</button>
+            <a href="lay-sdt-nhanh.html">Xem trang public</a>
+          </aside>
+          <section class="main-admin">${adminContent()}</section>
+        </div>
+        ${editingId !== null ? girlModal() : ""}`;
+    }
+
+    function adminContent() {
+      if (adminTab === "girls") return girlsTab();
+      if (adminTab === "popup") return popupTab();
+      if (adminTab === "keywords") return keywordsTab();
+      if (adminTab === "regions") return regionsTab();
+      return settingsTab();
+    }
+
+    function girlsTab() {
+      const rows = DB.girls.map(g => `
+        <tr>
+          <td><img class="thumb" src="${CMS.esc(g.img)}" alt="" /></td>
+          <td><b>${CMS.esc(g.name)}</b><div class="hint">${CMS.esc(g.year)}</div></td>
+          <td><span class="tag">${CMS.esc(g.region)}</span></td>
+          <td>${CMS.esc(g.price)}</td>
+          <td>${CMS.esc(g.masked)}</td>
+          <td>${g.available !== false ? '<span class="okdot">● Hiện</span>' : '<span class="baddot">● Ẩn</span>'}</td>
+          <td class="row-actions">
+            <button class="btn btn-ghost btn-sm" data-edit="${g.id}">Sửa</button>
+            <button class="btn btn-ok btn-sm" data-toggle="${g.id}">${g.available !== false ? "Ẩn" : "Hiện"}</button>
+            <button class="btn btn-danger btn-sm" data-del="${g.id}">Xoá</button>
+          </td>
+        </tr>`).join("");
+      return `
+        <div class="toolbar">
+          <h1>Hồ sơ card (${DB.girls.length})</h1>
+          <button class="btn btn-primary" style="width:auto" id="addGirl">+ Thêm hồ sơ</button>
+        </div>
+        <table>
+          <thead><tr><th></th><th>Tên</th><th>Khu vực</th><th>Giá</th><th>SĐT che</th><th>TT</th><th></th></tr></thead>
+          <tbody>${rows || `<tr><td colspan="7">Chưa có hồ sơ.</td></tr>`}</tbody>
+        </table>`;
+    }
+
+    function girlModal() {
+      const g = editingId === "new" ? {
+        name: "", year: 2005, status: "đang rảnh", hours: "24/7", move: "", service: "Full dịch vụ",
+        hotel: "Miễn phí", price: "", masked: "", full: "", region: DB.regions[0] || "", img: "", available: true
+      } : DB.girls.find(x => x.id === editingId) || {};
+      const regionOpts = DB.regions.map(r => `<option ${g.region === r ? "selected" : ""}>${CMS.esc(r)}</option>`).join("");
+      return `
+        <div class="modal-bg" id="modalBg">
+          <form class="modal" id="girlForm">
+            <div class="toolbar">
+              <h1>${editingId === "new" ? "Thêm hồ sơ" : "Sửa hồ sơ"}</h1>
+              <button type="button" class="btn btn-ghost" id="closeModal">Đóng</button>
+            </div>
+            <div class="grid-2">
+              <div class="field"><label>Tên</label><input name="name" required value="${CMS.esc(g.name)}" /></div>
+              <div class="field"><label>Năm sinh</label><input name="year" type="number" value="${CMS.esc(g.year)}" /></div>
+              <div class="field"><label>Khu vực có sẵn</label><select name="region" id="regionSelect">
+                ${regionOpts}
+                <option value="__new__">+ Khu vực khác...</option>
+              </select></div>
+              <div class="field"><label>Hoặc nhập khu vực mới</label><input name="regionNew" id="regionNew" placeholder="vd: Nha Trang, Bình Dương" /></div>
+              <div class="field"><label>Trạng thái (HIỆN TẠI)</label><input name="status" value="${CMS.esc(g.status)}" /></div>
+              <div class="field"><label>Phục vụ</label><input name="hours" value="${CMS.esc(g.hours)}" /></div>
+              <div class="field"><label>Giá</label><input name="price" value="${CMS.esc(g.price)}" /></div>
+              <div class="field span-2"><label>Di chuyển</label><input name="move" value="${CMS.esc(g.move)}" /></div>
+              <div class="field"><label>Dịch vụ</label><input name="service" value="${CMS.esc(g.service)}" /></div>
+              <div class="field"><label>Khách sạn</label><input name="hotel" value="${CMS.esc(g.hotel)}" /></div>
+              <div class="field"><label>SĐT che (hiện trên card)</label><input name="masked" value="${CMS.esc(g.masked)}" /></div>
+              <div class="field"><label>SĐT đầy đủ (sau khi nhập đúng mã)</label><input name="full" value="${CMS.esc(g.full)}" /></div>
+              <div class="field span-2"><label>Link ảnh</label><input name="img" value="${CMS.esc(g.img)}" /></div>
+              <div class="field"><label>Hiển thị</label>
+                <select name="available">
+                  <option value="true" ${g.available !== false ? "selected" : ""}>Hiện trên trang</option>
+                  <option value="false" ${g.available === false ? "selected" : ""}>Ẩn</option>
+                </select>
+              </div>
+            </div>
+            <div class="row-actions" style="margin-top:12px;">
+              <button class="btn btn-primary" style="width:auto" type="submit">Lưu</button>
+              <button class="btn btn-ghost" type="button" id="closeModal2">Huỷ</button>
+            </div>
+          </form>
+        </div>`;
+    }
+
+    function popupTab() {
+      const p = DB.popup;
+      const fields = [
+        ["titleTemplate", "Tiêu đề popup", "Dùng {masked} {name} {price}"],
+        ["extraTemplate", "Dòng phụ", "Dùng {name} {price} {region}"],
+        ["unlockCode", "Mã mở khóa SĐT", "User phải nhập đúng mã này"],
+        ["googleUrl", "Link gốc Google (nút sẽ gắn từ khóa đang random)", ""],
+        ["guideTitle", "Tiêu đề hướng dẫn", ""],
+        ["step1Title", "Nhãn bước 1", ""],
+        ["step1Text", "Nội dung bước 1", ""],
+        ["step2Title", "Nhãn bước 2", ""],
+        ["step2Text", "Nội dung bước 2", ""],
+        ["step3Title", "Nhãn bước 3", ""],
+        ["step3Text", "Nội dung bước 3", ""],
+        ["guideImage", "Link ảnh hướng dẫn bước 2 (mặc định)", "Dùng khi từ khóa không gắn ảnh riêng"],
+        ["ctaText", "Câu chúc cuối popup", ""],
+        ["codePlaceholder", "Placeholder ô nhập mã", ""],
+        ["confirmButton", "Nút xác nhận", ""],
+        ["copyButton", "Nút copy từ khóa", ""],
+        ["googleButton", "Nút mở Google", ""],
+        ["successTitle", "Tiêu đề khi mở khóa thành công", ""],
+        ["callNow", "Nút gọi sau khi mở khóa", ""],
+        ["wrongCode", "Thông báo mã sai", ""],
+        ["failTitle", "Tiêu đề thông báo hết slot", ""],
+        ["failMessage", "Nội dung hết hoạt động", ""],
+        ["failButton", "Nút lấy SĐT mới", ""]
+      ];
+      const long = ["titleTemplate","extraTemplate","step1Text","step2Text","step3Text","guideImage","failMessage","ctaText"];
+      return `
+        <div class="toolbar"><h1>Luồng popup lấy SĐT</h1></div>
+        <p class="hint" style="margin-bottom:12px">Từ khóa COPY NHANH không nhập ở đây nữa — quản lý ở tab <b>Từ khóa</b>. Mỗi lần user mở hồ sơ khác sẽ random từ khóa mới, không trùng từ khóa đã hiện trong phiên.</p>
+        <form class="settings-card" id="popupForm">
+          <div class="grid-2">
+            ${fields.map(([k, label, hint]) => `
+              <div class="field ${long.indexOf(k) >= 0 ? "span-2" : ""}">
+                <label>${label}</label>
+                ${k.indexOf("Text") >= 0 || k.indexOf("Message") >= 0 || k.indexOf("Template") >= 0
+                  ? `<textarea name="${k}">${CMS.esc(p[k] || "")}</textarea>`
+                  : `<input name="${k}" value="${CMS.esc(p[k] || "")}" />`}
+                ${hint ? `<div class="hint">${hint}</div>` : ""}
+              </div>`).join("")}
+          </div>
+          <button class="btn btn-primary" style="width:auto;margin-top:8px">Lưu luồng popup</button>
+        </form>`;
+    }
+
+    function keywordsTab() {
+      const rows = (DB.keywords || []).map(k => {
+        const left = Math.max(0, Number(k.maxShows || 0) - Number(k.shownCount || 0));
+        return `
+          <tr>
+            <td>
+              <code>${CMS.esc(k.text)}</code>
+              ${k.guideImage ? `<div class="hint">Ảnh: ${CMS.esc(k.guideImage).slice(0,48)}${k.guideImage.length>48?"…":""}</div>` : `<div class="hint">Ảnh: dùng ảnh mặc định popup</div>`}
+            </td>
+            <td>${CMS.esc(k.priority)}</td>
+            <td>${CMS.esc(k.shownCount || 0)} / ${CMS.esc(k.maxShows || 0)}</td>
+            <td>${left}</td>
+            <td>${k.active !== false ? '<span class="okdot">● Bật</span>' : '<span class="baddot">● Tắt</span>'}</td>
+            <td class="row-actions">
+              <button class="btn btn-ghost btn-sm" data-edit-kw="${k.id}">Sửa</button>
+              <button class="btn btn-ok btn-sm" data-reset-kw="${k.id}">Reset lượt</button>
+              <button class="btn btn-danger btn-sm" data-del-kw="${k.id}">Xoá</button>
+            </td>
+          </tr>`;
+      }).join("");
+      const editing = window.__editKw;
+      const formKw = editing || { text: "", priority: 5, maxShows: 20, active: true, guideImage: "" };
+      return `
+        <div class="toolbar">
+          <h1>Từ khóa Google (${(DB.keywords || []).length})</h1>
+        </div>
+        <div class="settings-card">
+          <p class="hint" style="margin-bottom:12px">
+            Random theo <b>ưu tiên × số lượt còn lại</b>. User không thấy lại từ khóa đã hiện trong cùng phiên.
+            Đổi hồ sơ / lấy mã mới → rút từ khóa khác.
+          </p>
+          <form id="kwForm" class="grid-2">
+            <div class="field span-2"><label>Từ khóa</label><input name="text" required value="${CMS.esc(formKw.text)}" placeholder="vd: gai goi ha noi" /></div>
+            <div class="field"><label>Ưu tiên (1–100)</label><input name="priority" type="number" min="1" max="100" value="${CMS.esc(formKw.priority)}" /></div>
+            <div class="field"><label>Số lần cần hiển thị</label><input name="maxShows" type="number" min="1" value="${CMS.esc(formKw.maxShows)}" /></div>
+            <div class="field"><label>Trạng thái</label>
+              <select name="active">
+                <option value="true" ${formKw.active !== false ? "selected" : ""}>Bật</option>
+                <option value="false" ${formKw.active === false ? "selected" : ""}>Tắt</option>
+              </select>
+            </div>
+            <div class="field span-2">
+              <label>Link ảnh minh họa bước 2</label>
+              <input name="guideImage" value="${CMS.esc(formKw.guideImage || "")}" placeholder="https://...png — hiện trong popup thay ảnh mặc định" />
+              <div class="hint">Để trống thì dùng “Link ảnh hướng dẫn bước 2” ở tab Luồng popup.</div>
+              ${formKw.guideImage ? `<img src="${CMS.esc(formKw.guideImage)}" alt="" style="margin-top:8px;max-width:220px;max-height:90px;object-fit:cover;border-radius:8px;border:1px solid #333" />` : ""}
+            </div>
+            <div class="field" style="display:flex;align-items:flex-end">
+              <button class="btn btn-primary" style="width:auto" type="submit">${editing ? "Cập nhật từ khóa" : "Thêm từ khóa"}</button>
+            </div>
+          </form>
+        </div>
+        <table>
+          <thead><tr><th>Từ khóa</th><th>Ưu tiên</th><th>Đã hiện / hạn mức</th><th>Còn</th><th>TT</th><th></th></tr></thead>
+          <tbody>${rows || `<tr><td colspan="6">Chưa có từ khóa.</td></tr>`}</tbody>
+        </table>
+        <p class="hint" style="margin-top:10px">Reset lượt đưa shownCount về 0. Xoá session user (clearSeen) không làm ở đây — mỗi trình duyệt tự nhớ từ khóa đã xem.</p>`;
+    }
+
+    function regionsTab() {
+      const used = {};
+      DB.regions.forEach(r => { used[r] = DB.girls.filter(g => g.region === r).length; });
+      return `
+        <div class="toolbar"><h1>Khu vực lọc</h1></div>
+        <div class="settings-card">
+          <form id="addRegionForm" style="display:flex;gap:8px;max-width:480px">
+            <input id="newRegion" placeholder="Tên khu vực mới, vd: Nha Trang" style="flex:1;background:#101318;border:1px solid #323846;color:#fff;border-radius:8px;padding:10px 12px" />
+            <button class="btn btn-primary" style="width:auto" type="submit">Thêm</button>
+          </form>
+          <table style="margin-top:16px">
+            <thead><tr><th>Khu vực</th><th>Số hồ sơ</th><th></th></tr></thead>
+            <tbody>
+              ${DB.regions.map(r => `
+                <tr>
+                  <td>${CMS.esc(r)}</td>
+                  <td>${used[r] || 0}</td>
+                  <td><button class="btn btn-danger btn-sm" data-del-region="${CMS.esc(r)}">Xoá</button></td>
+                </tr>`).join("")}
+            </tbody>
+          </table>
+          <p class="hint">Xoá khu vực không xoá hồ sơ — hồ sơ vẫn giữ tên khu cũ cho đến khi bạn sửa lại.</p>
+        </div>`;
+    }
+
+    function settingsTab() {
+      const s = DB.settings;
+      return `
+        <div class="toolbar"><h1>Cài đặt & sao lưu</h1></div>
+        <div class="warn">Hai file dùng chung localStorage khi được mở cùng origin (cùng website / cùng local server). Nếu mở trực tiếp file:// từng file riêng, hãy Xuất JSON rồi Nhập lại ở máy/trình duyệt kia.</div>
+        <form class="settings-card" id="setForm">
+          <div class="grid-2">
+            <div class="field"><label>Tên site</label><input name="siteName" value="${CMS.esc(s.siteName)}" /></div>
+            <div class="field"><label>Dòng phụ logo</label><input name="siteTag" value="${CMS.esc(s.siteTag)}" /></div>
+            <div class="field span-2"><label>Tiêu đề trang listing</label><input name="pageTitle" value="${CMS.esc(s.pageTitle)}" /></div>
+            <div class="field"><label>Mật khẩu quản trị</label><input name="adminPassword" value="${CMS.esc(s.adminPassword)}" /></div>
+            <div class="field"><label>Footer</label><input name="footer" value="${CMS.esc(s.footer)}" /></div>
+            <div class="field"><label>GA4 Measurement ID</label><input name="ga4Id" placeholder="G-XXXXXXXX" value="${CMS.esc(s.ga4Id || "")}" /></div>
+            <div class="field"><label>Bật GA4</label>
+              <select name="ga4Enabled">
+                <option value="true" ${s.ga4Enabled === true || s.ga4Enabled === "true" ? "selected" : ""}>Bật</option>
+                <option value="false" ${s.ga4Enabled === true || s.ga4Enabled === "true" ? "" : "selected"}>Tắt</option>
+              </select>
+            </div>
+          </div>
+          <p class="hint">Lấy ID tại Google Analytics → Admin → Data streams → Measurement ID (dạng G-XXXX). Event gửi: open_popup, copy_keyword, submit_code, code_ok, code_fail, switch_profile.</p>
+          <button class="btn btn-primary" style="width:auto;margin-top:8px">Lưu cài đặt</button>
+        </form>
+        <div class="settings-card">
+          <h3>Sao lưu dữ liệu</h3>
+          <div class="row-actions">
+            <button class="btn btn-ok" id="exportJson" type="button">Xuất JSON</button>
+            <label class="btn btn-ghost" style="display:inline-block">
+              Nhập JSON <input type="file" id="importJson" accept="application/json" hidden />
+            </label>
+            <button class="btn btn-danger" id="resetData" type="button">Reset về mẫu gốc</button>
+          </div>
+        </div>`;
+    }
+
+    function bind() {
+      const login = document.getElementById("loginForm");
+      if (login) {
+        login.onsubmit = e => {
+          e.preventDefault();
+          if (document.getElementById("adminPass").value === DB.settings.adminPassword) {
+            CMS.login(); render();
+          } else toast("Sai mật khẩu");
+        };
+        return;
+      }
+
+      document.querySelectorAll("[data-tab]").forEach(btn => {
+        btn.onclick = () => {
+          if (btn.dataset.tab === "logout") { CMS.logout(); render(); return; }
+          adminTab = btn.dataset.tab; editingId = null; render();
+        };
+      });
+
+      const add = document.getElementById("addGirl");
+      if (add) add.onclick = () => { editingId = "new"; render(); };
+      document.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => { editingId = b.dataset.edit; render(); });
+      document.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
+        if (!confirm("Xoá hồ sơ này?")) return;
+        DB.girls = DB.girls.filter(g => g.id !== b.dataset.del);
+        CMS.save(DB); toast("Đã xoá"); render();
+      });
+      document.querySelectorAll("[data-toggle]").forEach(b => b.onclick = () => {
+        const g = DB.girls.find(x => x.id === b.dataset.toggle);
+        if (!g) return;
+        g.available = g.available === false;
+        CMS.save(DB); render();
+      });
+
+      const modalBg = document.getElementById("modalBg");
+      const closeM = () => { editingId = null; render(); };
+      if (modalBg) modalBg.onclick = e => { if (e.target === modalBg) closeM(); };
+      const cm = document.getElementById("closeModal");
+      const cm2 = document.getElementById("closeModal2");
+      if (cm) cm.onclick = closeM;
+      if (cm2) cm2.onclick = closeM;
+      const gf = document.getElementById("girlForm");
+      if (gf) gf.onsubmit = e => {
+        e.preventDefault();
+        const obj = Object.fromEntries(new FormData(gf).entries());
+        obj.year = Number(obj.year || 0);
+        obj.available = obj.available === "true";
+        const custom = String(obj.regionNew || "").trim();
+        if (custom) {
+          obj.region = custom;
+          if (DB.regions.indexOf(custom) < 0) DB.regions.push(custom);
+        } else if (obj.region === "__new__") {
+          toast("Nhập tên khu vực mới");
+          return;
+        }
+        delete obj.regionNew;
+        if (editingId === "new") { obj.id = CMS.uid(); DB.girls.unshift(obj); }
+        else {
+          const i = DB.girls.findIndex(x => x.id === editingId);
+          if (i >= 0) DB.girls[i] = Object.assign({}, DB.girls[i], obj);
+        }
+        CMS.save(DB); editingId = null; toast("Đã lưu hồ sơ"); render();
+      };
+
+      const pf = document.getElementById("popupForm");
+      if (pf) pf.onsubmit = e => {
+        e.preventDefault();
+        DB.popup = Object.assign({}, DB.popup, Object.fromEntries(new FormData(pf).entries()));
+        CMS.save(DB); toast("Đã lưu luồng popup");
+      };
+
+      const ar = document.getElementById("addRegionForm");
+      if (ar) ar.onsubmit = e => {
+        e.preventDefault();
+        const name = (document.getElementById("newRegion").value || "").trim();
+        if (!name) return;
+        if (DB.regions.indexOf(name) >= 0) return toast("Khu vực đã có");
+        DB.regions.push(name); CMS.save(DB); toast("Đã thêm khu vực"); render();
+      };
+      document.querySelectorAll("[data-del-region]").forEach(b => b.onclick = () => {
+        DB.regions = DB.regions.filter(r => r !== b.dataset.delRegion);
+        CMS.save(DB); toast("Đã xoá khu vực"); render();
+      });
+
+      const kwForm = document.getElementById("kwForm");
+      if (kwForm) kwForm.onsubmit = e => {
+        e.preventDefault();
+        const obj = Object.fromEntries(new FormData(kwForm).entries());
+        obj.priority = Number(obj.priority || 1);
+        obj.maxShows = Number(obj.maxShows || 1);
+        obj.active = obj.active === "true";
+        obj.text = String(obj.text || "").trim();
+        if (!obj.text) return toast("Nhập từ khóa");
+        if (window.__editKw) {
+          const i = DB.keywords.findIndex(k => k.id === window.__editKw.id);
+          if (i >= 0) DB.keywords[i] = Object.assign({}, DB.keywords[i], obj);
+          window.__editKw = null;
+        } else {
+          obj.id = CMS.uid();
+          obj.shownCount = 0;
+          DB.keywords = DB.keywords || [];
+          DB.keywords.push(obj);
+        }
+        CMS.save(DB); toast("Đã lưu từ khóa"); render();
+      };
+      document.querySelectorAll("[data-edit-kw]").forEach(b => b.onclick = () => {
+        window.__editKw = DB.keywords.find(k => k.id === b.dataset.editKw);
+        render();
+      });
+      document.querySelectorAll("[data-del-kw]").forEach(b => b.onclick = () => {
+        if (!confirm("Xoá từ khóa này?")) return;
+        DB.keywords = DB.keywords.filter(k => k.id !== b.dataset.delKw);
+        CMS.save(DB); toast("Đã xoá từ khóa"); render();
+      });
+      document.querySelectorAll("[data-reset-kw]").forEach(b => b.onclick = () => {
+        const k = DB.keywords.find(x => x.id === b.dataset.resetKw);
+        if (!k) return;
+        k.shownCount = 0;
+        CMS.save(DB); toast("Đã reset lượt"); render();
+      });
+
+      const sf = document.getElementById("setForm");
+      if (sf) sf.onsubmit = e => {
+        e.preventDefault();
+        const obj = Object.fromEntries(new FormData(sf).entries());
+        obj.ga4Enabled = obj.ga4Enabled === "true";
+        obj.ga4Id = String(obj.ga4Id || "").trim();
+        DB.settings = Object.assign({}, DB.settings, obj);
+        CMS.save(DB); toast("Đã lưu cài đặt");
+      };
+      const exp = document.getElementById("exportJson");
+      if (exp) exp.onclick = () => {
+        const blob = new Blob([JSON.stringify(DB, null, 2)], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "girllist-data.json";
+        a.click();
+      };
+      const imp = document.getElementById("importJson");
+      if (imp) imp.onchange = ev => {
+        const file = ev.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const data = JSON.parse(reader.result);
+            if (!data.girls || !data.popup) throw new Error("bad");
+            DB = Object.assign({}, CMS.seed(), data);
+            CMS.save(DB); toast("Đã nhập dữ liệu"); render();
+          } catch (err) { toast("JSON không hợp lệ"); }
+        };
+        reader.readAsText(file);
+      };
+      const rst = document.getElementById("resetData");
+      if (rst) rst.onclick = () => {
+        if (!confirm("Xoá toàn bộ chỉnh sửa và về dữ liệu mẫu?")) return;
+        DB = CMS.seed(); CMS.save(DB); toast("Đã reset"); render();
+      };
+    }
+
+    render();
+  </script>
+</body>
+</html>
